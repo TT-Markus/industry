@@ -10,20 +10,21 @@ prepare_select_test() ->
     "SELECT id,value FROM keyspace.table WHERE id='id_value'"
         = industry_seestar_helper:prepare_select(Keyspace, table, Schema, <<"id_value">>).
 
-prepare_select_secondary_index_test() ->
+prepare_secondary_index_select_test() ->
     Keyspace = "keyspace",
     Attributes = [{id, string},
         {secondary_index, string},
         {value, string}],
     Schema = [{name, Keyspace}, {type, table}, {attributes, Attributes}],
     "SELECT id,secondary_index,value FROM keyspace.table WHERE secondary_index='secondary_index_key'"
-        = industry_seestar_helper:prepare_select(Keyspace, table, Schema, {secondary_index, <<"secondary_index_key">>}).
+        = industry_seestar_helper:prepare_select(Keyspace, table, Schema, [{secondary_index, <<"secondary_index_key">>}]).
 
-prepare_secondary_index_test() ->
+prepare_multiple_select_test() ->
     Keyspace = "keyspace",
     Attributes = [{id, string},
         {secondary_index, string},
+        {secondary_index2, string},
         {value, string}],
     Schema = [{name, Keyspace}, {type, table}, {attributes, Attributes}],
-    "CREATE INDEX ON keyspace.table ( secondary_index )" =
-        industry_seestar_helper:prepare_secondary_index(Keyspace, Schema, secondary_index).
+    "SELECT id,secondary_index,secondary_index2,value FROM keyspace.table WHERE secondary_index='secondary_index_key' AND secondary_index2='secondary_index2'"
+        = industry_seestar_helper:prepare_select("keyspace", table, Schema, [{secondary_index, <<"secondary_index_key">>}, {secondary_index2, <<"secondary_index2">>}]).
