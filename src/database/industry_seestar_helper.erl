@@ -8,11 +8,12 @@
 -module(industry_seestar_helper).
 
 -export([prepare_insert/4,
-	 prepare_select/4,
-	 prepare_update/5,
-	 prepare_delete/4,
-	 prepare_create_tables/2,
-	 prepare_secondary_index/3]).
+	prepare_select/4,
+	prepare_update/5,
+	prepare_delete/4,
+	prepare_create_table/3, prepare_create_table/4,
+	prepare_create_tables/2,
+	prepare_secondary_index/3]).
 
 
 -export([format_row_results/2]).
@@ -82,10 +83,10 @@ prepare_create_tables(NameSpace, Schemas) ->
 						    true
 						end],
     lists:map(fun(Schema) ->
-		      create_table(NameSpace, Schema, Env)
+		      prepare_create_table(NameSpace, Schema, Env)
 	      end, Schemas).
     
-create_table(NameSpace, Schema, Env) ->
+prepare_create_table(NameSpace, Schema, Env) ->
     Attributes = i_utils:get(attributes, Schema),
     Table      = i_utils:get(type,      Schema),
     Query = [
@@ -100,6 +101,24 @@ create_table(NameSpace, Schema, Env) ->
 			       end || {Key, Type} <- Attributes],","),
 	     ")"],
     lists:flatten(Query).
+
+-spec prepare_create_table(string(), [term()], atom(), [atom()]) -> string().
+prepare_create_table(NameSpace, Schema, Env, Primary_Keys) ->
+	Attributes = i_utils:get(attributes, Schema),
+	Table = i_utils:get(type, Schema),
+	Printed_Keys =
+		string:join([[" PRIMARY KEY ("],
+			string:join([io_lib:format(" ~p ", [PK]) || PK <- Primary_Keys, proplists:is_defined(PK, Attributes)], ","),
+			[")"]], ""),
+	Query = [
+		io_lib:format("CREATE TABLE ~s.~p", [NameSpace, Table]),
+		"(", string:join([[begin
+												 RType = i_utils:render_type(Type, Env),
+												 io_lib:format(" ~p ~s", [Key, RType])
+											 end || {Key, Type} <- Attributes] | [Printed_Keys]
+		], ","),
+		")"],
+	lists:flatten(Query).
 
 -spec prepare_secondary_index(iolist(), [term()], atom()) -> string().
 prepare_secondary_index(NameSpace, Schema, Attribute) ->
