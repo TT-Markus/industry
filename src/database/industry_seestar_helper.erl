@@ -106,18 +106,15 @@ prepare_create_table(NameSpace, Schema, Env) ->
 prepare_create_table(NameSpace, Schema, Env, Primary_Keys) ->
 	Attributes = i_utils:get(attributes, Schema),
 	Table = i_utils:get(type, Schema),
-	Printed_Keys =
-		string:join([[" PRIMARY KEY ("],
-			string:join([io_lib:format(" ~p ", [PK]) || PK <- Primary_Keys, proplists:is_defined(PK, Attributes)], ","),
-			[")"]], ""),
+	Printed_Keys = [" PRIMARY KEY (", string:join([io_lib:format(" ~p ", [PK]) ||
+		PK <- Primary_Keys, proplists:is_defined(PK, Attributes)], ","), ")"],
+	Printed_Attr = string:join([begin
+																RType = i_utils:render_type(Type, Env),
+																io_lib:format(" ~p ~s", [Key, RType])
+															end || {Key, Type} <- Attributes], ","),
 	Query = [
 		io_lib:format("CREATE TABLE ~s.~p", [NameSpace, Table]),
-		"(", string:join([[begin
-												 RType = i_utils:render_type(Type, Env),
-												 io_lib:format(" ~p ~s", [Key, RType])
-											 end || {Key, Type} <- Attributes] | [Printed_Keys]
-		], ","),
-		")"],
+		"(", Printed_Attr, ",", Printed_Keys, ")"],
 	lists:flatten(Query).
 
 -spec prepare_secondary_index(iolist(), [term()], atom()) -> string().

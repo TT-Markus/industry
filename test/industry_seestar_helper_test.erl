@@ -37,7 +37,7 @@ create_table_compound_primary_key_test() ->
         {key, string},
         {value, string}],
     Schema = [{name, Keyspace}, {type, Env}, {attributes, Attributes}],
-    "CREATE TABLE keyspace.table( id varchar primary_key varchar key varchar value varchar, PRIMARY KEY ( id , primary_key ))" =
+    "CREATE TABLE keyspace.table( id varchar, primary_key varchar, key varchar, value varchar, PRIMARY KEY ( id , primary_key ))" =
         industry_seestar_helper:prepare_create_table(Keyspace, Schema, table, [id, primary_key]).
 
 create_table_id_primary_key_test() ->
