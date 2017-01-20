@@ -68,6 +68,15 @@ prepare_update(NameSpace, Table, Schema, Id, Values) ->
 	    ],
     lists:flatten(Query).
 
+-spec prepare_delete(iolist(), atom(), [term()], iolist() | [{atom(), iolist()}]) -> string().
+prepare_delete(NameSpace, Table, Schema, WherePL) when is_list(WherePL) ->
+	Attributes = i_utils:get(attributes, Schema),
+	Query = [
+		"DELETE FROM ", io_lib:format("~s.~p", [NameSpace, Table]),
+		" WHERE ", string:join([ io_lib:format("~s=~s",
+			[K, i_utils:render(V, i_utils:get([attributes, K], Schema))]) || {K,V} <- WherePL], " AND ")
+	],
+	lists:flatten(Query);
 prepare_delete(NameSpace, Table, Schema, Id) -> 
     Attributes = i_utils:get(attributes, Schema),
     Query = [

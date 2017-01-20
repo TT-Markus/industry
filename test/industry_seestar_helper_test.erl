@@ -60,3 +60,14 @@ create_table_id_primary_key_test() ->
     Schema = [{name, Keyspace}, {type, Type}, {attributes, Attributes}],
     "CREATE TABLE keyspace.table( id varchar PRIMARY KEY , key varchar , value varchar )" =
         industry_seestar_helper:prepare_create_table(Keyspace, Schema, Type).
+
+prepare_delete_compound_key_test() ->
+    Keyspace = "keyspace",
+    Env = table,
+    Attributes = [{id, string},
+        {primary_key, string},
+        {key, string},
+        {value, string}],
+    Schema = [{name, Keyspace}, {type, Env}, {attributes, Attributes}],
+    "DELETE FROM keyspace.table WHERE id='id_value' AND primary_key='primary_key_value'" =
+        industry_seestar_helper:prepare_delete(Keyspace, table, Schema, [{id, <<"id_value">>}, {primary_key, <<"primary_key_value">>}]).
