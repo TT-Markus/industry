@@ -29,7 +29,7 @@ prepare_multiple_select_test() ->
     "SELECT id,secondary_index,secondary_index2,value FROM keyspace.table WHERE secondary_index='secondary_index_key' AND secondary_index2='secondary_index2'"
         = industry_seestar_helper:prepare_select(Keyspace, table, Schema, [{secondary_index, <<"secondary_index_key">>}, {secondary_index2, <<"secondary_index2">>}]).
 
-create_table_compound_primary_key_test() ->
+create_table_compound_partition_key_test() ->
     Keyspace = "keyspace",
     Env = table,
     Attributes = [{id, string},
@@ -37,8 +37,19 @@ create_table_compound_primary_key_test() ->
         {key, string},
         {value, string}],
     Schema = [{name, Keyspace}, {type, Env}, {attributes, Attributes}],
-    "CREATE TABLE keyspace.table( id varchar, primary_key varchar, key varchar, value varchar, PRIMARY KEY ( id , primary_key ))" =
-        industry_seestar_helper:prepare_create_table(Keyspace, Schema, table, [id, primary_key]).
+    "CREATE TABLE keyspace.table( id varchar, primary_key varchar, key varchar, value varchar,PRIMARY KEY (( id, primary_key )))" =
+        industry_seestar_helper:prepare_create_table(Keyspace, Schema, table, [id, primary_key], []).
+
+create_table_compound_partition_and_cluster_key_test() ->
+    Keyspace = "keyspace",
+    Env = table,
+    Attributes = [{id, string},
+        {primary_key, string},
+        {key, string},
+        {value, string}],
+    Schema = [{name, Keyspace}, {type, Env}, {attributes, Attributes}],
+    "CREATE TABLE keyspace.table( id varchar, primary_key varchar, key varchar, value varchar,PRIMARY KEY (( id, primary_key ), key))" =
+        industry_seestar_helper:prepare_create_table(Keyspace, Schema, table, [id, primary_key], [key]).
 
 create_table_id_primary_key_test() ->
     Keyspace = "keyspace",

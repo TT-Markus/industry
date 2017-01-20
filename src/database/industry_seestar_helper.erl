@@ -11,7 +11,7 @@
 	prepare_select/4,
 	prepare_update/5,
 	prepare_delete/4,
-	prepare_create_table/3, prepare_create_table/4,
+	prepare_create_table/3, prepare_create_table/5,
 	prepare_create_tables/2,
 	prepare_secondary_index/3]).
 
@@ -102,12 +102,13 @@ prepare_create_table(NameSpace, Schema, Env) ->
 	     ")"],
     lists:flatten(Query).
 
--spec prepare_create_table(string(), [term()], atom(), [atom()]) -> string().
-prepare_create_table(NameSpace, Schema, Env, Primary_Keys) ->
+-spec prepare_create_table(string(), [term()], atom(), [atom()], [atom()]) -> string().
+prepare_create_table(NameSpace, Schema, Env, Partition_Keys, Clustering_Keys) ->
 	Attributes = i_utils:get(attributes, Schema),
 	Table = i_utils:get(type, Schema),
-	Printed_Keys = [" PRIMARY KEY (", string:join([io_lib:format(" ~p ", [PK]) ||
-		PK <- Primary_Keys, proplists:is_defined(PK, Attributes)], ","), ")"],
+	PK_Strings = [atom_to_list(PK) || PK <- Partition_Keys, proplists:is_defined(PK, Attributes)],
+	CK_Strings = [atom_to_list(CK) || CK <- Clustering_Keys, proplists:is_defined(CK, Attributes)],
+	Printed_Keys = render_primary_key({PK_Strings, CK_Strings}),
 	Printed_Attr = string:join([begin
 																RType = i_utils:render_type(Type, Env),
 																io_lib:format(" ~p ~s", [Key, RType])
@@ -158,3 +159,24 @@ format_element(Values, {set, Of}) ->
 	      end, sets:to_list(Values)));
 format_element(null,  {list, Of}) ->
     [].
+
+%% From tt_seestar in xmpp
+-spec render_primary_key({list(), list()}) -> iolist().
+render_primary_key({[],[]}) ->
+	"";
+render_primary_key({PartitionKeys, []}) ->
+	PartitionKeyRendering = case PartitionKeys of
+														[P] -> P;
+														_ -> "( " ++ string:join(PartitionKeys, ", ") ++ " )"
+													end,
+	["PRIMARY KEY (", PartitionKeyRendering, ")"];
+render_primary_key({PartitionKeys, ClusteringKeys}) ->
+	PartitionKeyRendering = case PartitionKeys of
+														[P] -> P;
+														_ -> "( " ++ string:join(PartitionKeys, ", ") ++ " )"
+													end,
+	ClusteringRendering = case ClusteringKeys of
+													[] -> [];
+													_ -> string:join(ClusteringKeys, ", ")
+												end,
+	["PRIMARY KEY (", PartitionKeyRendering, ", ", ClusteringRendering, ")"].
