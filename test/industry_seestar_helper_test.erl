@@ -17,7 +17,7 @@ prepare_secondary_index_select_test() ->
         {value, string}],
     Schema = [{name, Keyspace}, {type, table}, {attributes, Attributes}],
     "SELECT id,secondary_index,value FROM keyspace.table WHERE secondary_index='secondary_index_key'"
-        = industry_seestar_helper:prepare_select(Keyspace, table, Schema, [{secondary_index, <<"secondary_index_key">>}]).
+        = industry_seestar_helper:prepare_select(Keyspace, table, Schema, #{secondary_index => <<"secondary_index_key">>}).
 
 prepare_multiple_select_test() ->
     Keyspace = "keyspace",
@@ -27,7 +27,7 @@ prepare_multiple_select_test() ->
         {value, string}],
     Schema = [{name, Keyspace}, {type, table}, {attributes, Attributes}],
     "SELECT id,secondary_index,secondary_index2,value FROM keyspace.table WHERE secondary_index='secondary_index_key' AND secondary_index2='secondary_index2'"
-        = industry_seestar_helper:prepare_select(Keyspace, table, Schema, [{secondary_index, <<"secondary_index_key">>}, {secondary_index2, <<"secondary_index2">>}]).
+        = industry_seestar_helper:prepare_select(Keyspace, table, Schema, #{secondary_index => <<"secondary_index_key">>, secondary_index2 => <<"secondary_index2">>}).
 
 create_table_compound_partition_key_test() ->
     Keyspace = "keyspace",
@@ -70,4 +70,5 @@ prepare_delete_compound_key_test() ->
         {value, string}],
     Schema = [{name, Keyspace}, {type, Env}, {attributes, Attributes}],
     "DELETE FROM keyspace.table WHERE id='id_value' AND primary_key='primary_key_value'" =
-        industry_seestar_helper:prepare_delete(Keyspace, table, Schema, [{id, <<"id_value">>}, {primary_key, <<"primary_key_value">>}]).
+        industry_seestar_helper:prepare_delete(Keyspace, table, Schema,
+            #{id => <<"id_value">>, primary_key => <<"primary_key_value">>}).
