@@ -8,6 +8,7 @@
 -module(industry_seestar_helper).
 
 -export([prepare_insert/4,
+	prepare_select/3,
 	prepare_select/4,
 	prepare_update/5,
 	prepare_delete/4,
@@ -32,6 +33,16 @@ prepare_insert(NameSpace, Table, Schema, Values) ->
 		i_utils:render_prepared(Value, AttrType)
 	    end || {Attribute, AttrType} <- Attributes],
     {lists:flatten(Query), Row}.
+
+-spec prepare_select(iolist(), atom(), [term()]) -> string().
+prepare_select(NameSpace, Table, Schema) ->
+	Attributes = i_utils:get(attributes, Schema),
+	Query = [
+		"SELECT ", string:join([io_lib:format("~p", [K])
+			|| {K, _} <- Attributes], ","),
+		" FROM ", io_lib:format("~s.~p", [NameSpace, Table])
+	],
+	lists:flatten(Query).
 
 -spec prepare_select(iolist(), atom(), [term()], map() | iolist()) -> string().
 prepare_select(NameSpace, Table, Schema, WhereMap) when is_map(WhereMap) ->
